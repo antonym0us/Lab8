@@ -1,84 +1,101 @@
 import structure5.*;
 import java.util.Iterator;
+import java.util.Scanner;
 
 public class LexiconTrie implements Lexicon {
+
     protected int numWords = 0;
     protected LexiconNode root;
 
-    public LexiconTrie(){
-	root = new LexiconNode();
+    public LexiconTrie() {
+	root = new LexiconNode(' ', true);
     }
 
     public boolean addWord(String word) {
-	return addWordHelper(word, root);
+	LexiconNode last = find(word);
+	
+	if (last == null) {
+	    return addWordHelper(word, root);
+	}
+	return false;
     }
-    
-    protected boolean addWordHelper(String word, LexiconNode parent) {
-	if (word.length() == 0) {	    
-	    // set parent isWord to true
+
+    public boolean addWordHelper(String word, LexiconNode parent) {
+	if (word.length() == 0) {
+	    // All added, stop!
 	    parent.setIsWord(true);
 	    ++numWords;
 	    return true;
-	} else if (parent.getChild(word.charAt(0)) == null) {
-	    parent.addChild(new LexiconNode(word.charAt(0), false));
-	    return addWordHelper (word.substring(1), parent.getChild(word.charAt(0)));
 	} else {
-	    return false;
+	    // Need to add more
+
+	    // Should skip?
+	    if (parent.getChild(word.charAt(0)) == null) {
+		parent.addChild(new LexiconNode(word.charAt(0), false));
+	    }
+
+	    // Keep going
+	    return addWordHelper(word.substring(1), parent.getChild(word.charAt(0)));
 	}
     }
     
     public int addWordsFromFile(String filename) {
-	// Ay bruv check out the filestream doc
 	int preNumWords = numWords;
-
-	FileStream stream = new FileStream(filename);
-	Scanner in = new Scanner(stream);
+	
+	Scanner in = new Scanner(new FileStream(filename));
+	
 	while (in.hasNext()) {
 	    addWord(in.next());
 	}
+	
 	return numWords - preNumWords;
     }
-    
+
+    // shivam's idea
     public boolean removeWord(String word) {
-	if (word.length() == 0 && parent.isWord()) {
-	    parent.setIsWord(false);
+	LexiconNode last = find(word);
+
+	if (last != null) {
+	    last.setIsWord(false);
 	    --numWords;
 	    return true;
-	} else if (parent.getChild(word.charAt(0)) != null) {
-	    return removeWordHelper(word.substring(1), parent.getChild(word.charAt(0)));
-	} else {
-	    return false;
 	}
+	return false;
 	
-	public int numWords() {
+    }
+	
+    public int numWords() {
 	return numWords;
     }
     
     public boolean containsWord(String word){
-	return containsWordHelper(word, root);
-    }
-
-    private boolean containsWordHelper(String word, LexiconNode parent) {
-	if (word.length() == 0 && parent.isWord()) {
-	    return true;
-	} else if (parent.getChild(word.charAt(0)) != null) {
-	    return containsWordHelper(word.substring(1), parent.getChild(word.charAt(0)));
-	} else {
-	    return false;
-	}
+	return find(word) != null && find(word).isWord();
     }
     
     public boolean containsPrefix(String prefix){
-	return containsPrefixHelper(prefix, root);
+	return find(prefix) != null;
     }
 
-    private booolean containsPrefixHelper(String prefix, LexiconNode parent) {
-	if (prefix.length() == 0) {
-	    return true;
+    /*
+     * A method to do all of the tracing for us
+     * 
+     * Returns null if word is found
+     * Returns the last letter of word found if word is not found
+     */
+    private LexiconNode find(String word) {
+	return finder(word, root);
+    }
+
+    private LexiconNode finder(String word, LexiconNode parent) {
+	if (word.length() == 0) {
+	    // Word is empty; every letter was found
+	    return parent;
 	} else if (parent.getChild(word.charAt(0)) != null) {
-	    return containsPrefixHelper(prefix.substring(1), parent.getChild(word.charAt(0)));
+	    // The next character was found in the trie; keep tracing
+	    return finder(word.substring(1), parent.getChild(word.charAt(0)));
 	} else {
-	    return false;
+	    // The word is NOT empty AND the next character was NOT found in the trie
+	    return null;
 	}
     }
     
