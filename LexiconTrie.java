@@ -98,10 +98,29 @@ public class LexiconTrie implements Lexicon {
 	    return null;
 	}
     }
-    
-    public Iterator<String> iterator() {
-	return null;
+ public Iterator<String> iterator() {	
+	Vector<String> stringVector = new Vector<String>();
+	String newWord = "";
+	iteratorHelper(stringVector, root.iterator(), newWord);
+	return stringVector.iterator();
     }
+    
+    protected void iteratorHelper(Vector<String> stringVector, Iterator<LexiconNode> levelIt, String newWord) {
+	// base case: no more nodes to iterate through at this level
+	if (!levelIt.hasNext()) {
+	    return;
+	} else {
+	    LexiconNode current = levelIt.next();
+	    if (current.isWord()) {
+		stringVector.add(newWord + current.letter());
+	    }
+	    // depth
+	    iteratorHelper(stringVector, current.iterator(), newWord + current.letter());
+	    // breadth
+	    iteratorHelper(stringVector, levelIt, newWord);
+	}       
+    }
+    
     public Set<String> suggestCorrections(String target, int maxDistance) {
 	return null;
     }
