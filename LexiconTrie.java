@@ -121,9 +121,41 @@ public class LexiconTrie implements Lexicon {
 	}       
     }
     
-    public Set<String> suggestCorrections(String target, int maxDistance) {
-	return null;
+public Set<String> suggestCorrections(String target, int maxDistance) {
+	Set<String> suggestionSet = new Set<string>();
+	String currentWord = "";
+	sCHelper(suggestionSet, currentWord, target, root.iterator(), maxDistance);
+	return suggestionSet;
     }
+    
+    protected void sCHelper(Set<String> suggestionSet, String currentWord, String target, Iterator<LexiconNode> levelIt, int maxDistance) {
+	// two equal length strings!	
+
+	// only runs if maxDistance >= 0 && target.length > currentWord.length && levelIt.hasNext
+	if (maxDistance < 0 || target.length() == currentWord.length() || !levelIt.hasNext()) {
+	    return;
+	} else {
+	    // base case: add a word to the suggestionSet if maxDistance == 0 && currentWord.length() + 1 = target.length() && current.isWord()
+	    LexiconNode current = levelIt.next();	    
+	    if (current.isWord()) {
+		suggestionSet.add(currentWord + current.letter());
+	    } else {
+		if (!(current.letter().equals(target.charAt(remainingLength)))) {
+		    // depth, but one letter off
+		    scHelper(suggestionSet, currentWord + current.letter(), target, --remainingLength, current.iterator(), --maxDistance);
+		    // breadth, but one letter off
+		    scHelper(suggestionSet, currentWord, target, remainingLength, levelIt, --maxDistance);
+		}
+		else {
+		    // depth
+		    scHelper(suggestionSet, currentWord + current.letter(), target, --remainingLength, current.iterator(), maxDistance);
+		    // breadth
+		    scHelper(suggestionSet, currentWord, target, remainingLength, levelIt, maxDistance);		    
+		}				
+	    }
+	}
+    }
+
     
     public Set<String> matchRegex(String pattern){
 	return null;
